@@ -1,78 +1,42 @@
-require 'algorithms'
-require 'ostruct'
-
 class Ranking
   def initialize
-    @ranking_by_age = Hash.new{|k,v| k[v] = HeapMax.new}
+    @players = []
   end
 
   def add(player)
-    @ranking_by_age[player.age].add player
+    @players << player
   end
 
   def champions
-    @champions = rec_champions(@ranking_by_age.keys.min, @ranking_by_age.keys.max, -Float::INFINITY)
+    @champions = find_champions
   end
 
-  def rec_champions(begin_age, end_age, limit_score, champions = [])
-    if begin_age > end_age
-      return champions
-    else
-      if @ranking_by_age[begin_age] && @ranking_by_age[begin_age].max
-        score, player_ids = @ranking_by_age[begin_age].max_score_with_array_of_players
-        if score > limit_score
-          champions += player_ids
-          limit_score = score
-        end
-      end
-      rec_champions(begin_age+=1, end_age, limit_score, champions)
-    end
-  end
-end
+  def find_champions
+    @players.sort_by! { |player| [-player[:score], player[:age]] }
+    champions = []
+    min_age = Float::INFINITY
+    limit_score = nil
 
-class HeapMax
-  def initialize
-    @heap = Containers::MaxHeap.new
-  end
-
-  def add(player)
-    @heap << [player.score, player.id] 
-  end
-
-  def max
-    @heap.max
-  end
-
-  def max_score_with_array_of_players
-    max_score, _ = @heap.max
-    player_ids = []
-
-    # trouver tous les joueurs avec le max score
-    while !@heap.max.nil?
-      score,  player_id = @heap.max
-      if score == max_score
-        score,  player_id =  @heap.pop
-        player_ids << player_id
-      else
-        break
+    @players.each do |player|
+      if player[:age] < min_age
+        champions << player[:id]
+        min_age = player[:age]
+        limit_score = player[:score]
+      elsif player[:age] == min_age && player[:score] == limit_score
+        champions << player[:id]
       end
     end
 
-    # push back
-    player_ids.each do |player_id|
-      @heap << [max_score, player_id]
-    end
-
-    [max_score, player_ids]
+    champions
   end
 end
 
 ranking = Ranking.new
 
-player_1 = OpenStruct.new({id: 1, age: 12, score: 1000 })
-player_2 = OpenStruct.new({id: 2, age: 13, score: 1100 })
-player_3 = OpenStruct.new({id: 3, age: 16, score: 1600 })
-player_4 = OpenStruct.new({id: 4, age: 17, score: 1600 })
+player_1 = {id: 1, age: 12, score: 1000 }
+player_2 = {id: 2, age: 13, score: 1100 }
+player_3 = {id: 3, age: 16, score: 1600 }
+player_4 = {id: 4, age: 17, score: 1600 }
 
 
 ranking.add(player_1)
@@ -87,7 +51,7 @@ p ranking.champions
 # player 3 est le meilleur de sa catégorie age: 16
 # player 4 est le meilleur de sa catégorie age: 17, cependant il est moins fort que le player 3
 
-player_5 = OpenStruct.new({id: 5, age: 12, score: 1050 })
+player_5 = {id: 5, age: 12, score: 1050 }
 
 ranking.add(player_5)
 p ranking.champions
@@ -100,8 +64,8 @@ p ranking.champions
 # le resultat ne change pas , d'où sans rajout d'effet de bord
 
 
-player_6 = OpenStruct.new({id: 6, age: 18, score: 1850 })
-player_7 = OpenStruct.new({id: 7, age: 18, score: 1850 })
+player_6 = {id: 6, age: 18, score: 1850 }
+player_7 = {id: 7, age: 18, score: 1850 }
 
 
 ranking.add(player_6)
@@ -111,24 +75,40 @@ p ranking.champions
 # => [5, 2, 3, 7, 6]
 # 6 et 7  ont le même âge
 
-player_8 = OpenStruct.new({id: 8, age: 10, score: 2000 })
+player_8 = {id: 8, age: 10, score: 2000 }
 ranking.add(player_8)
 
 p ranking.champions
 # => [8]
 # le player 8 élimine tout le monde, donc il devient le seul champion
 
-player_9 = OpenStruct.new({id: 9, age: 15, score: 2000 })
+player_9 = {id: 9, age: 15, score: 2000 }
 ranking.add(player_9)
 
 p ranking.champions
 # => [8]
 
 
-player_10 = OpenStruct.new({id: 10, age: 15, score: 25000 })
+player_10 = {id: 10, age: 15, score: 25000 }
 ranking.add(player_10)
 
 p ranking.champions
 # => [8, 10]
 
 
+players_list = [
+  { id: 'A', age: 25, score: 2000 },
+  { id: 'B', age: 30, score: 2200 },
+  { id: 'C', age: 22, score: 1800 },
+  { id: 'D', age: 28, score: 2300 },
+  { id: 'E', age: 20, score: 1900 },
+  { id: 'F', age: 33, score: 2100 }
+]
+
+ranking2 = Ranking.new
+players_list.each do |player|
+  ranking2.add player
+end
+
+p ranking2.champions
+# => ["D", "A", "E"]

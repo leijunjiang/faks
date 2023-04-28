@@ -16,12 +16,11 @@ On attachera une importance particulière aux points suivants:
 
 ## Instruction
 
-Before ruuning the main.rb file
-```code
- gem install algorithms
-```
-Comme ruby n'a pas de Heap comme built-in fonctionalite, j'utilise la librairie algorithms
+je trie d'abord les joueurs par ordre décroissant de score, puis par ordre croissant d'âge pour chaque groupe de score,
+le premier joueur de chaque groupe de score rencontré sera le joueur avec le score le plus élevé pour ce group
 
-J'utilise HeapMax pour stocker tous les joueurs du même âge en fonction de leur score, donc la complexité de rajouter du joueur est nlog(n), la complexité de trouver les joueur avec un max score est O(n)
+la complexité temporelle est O(n log n) en raison du tri initial.
+
+
 
 
